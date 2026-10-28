@@ -1,0 +1,6 @@
+{
+  "name": "Gully Cricket",
+  "description": "Gully cricket scoring app with interactive toss, ball-by-ball scoring, custom extras, and chasing runs narration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

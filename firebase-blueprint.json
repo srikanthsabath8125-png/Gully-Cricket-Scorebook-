@@ -1,0 +1,176 @@
+{
+  "entities": {
+    "LiveMatch": {
+      "title": "LiveMatch",
+      "description": "Real-time ball-to-ball match scorecard shared via unique match code.",
+      "type": "object",
+      "properties": {
+        "matchCode": {
+          "type": "string",
+          "description": "Unique uppercase 6-character match code for live spectators"
+        },
+        "scorerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the match scorer"
+        },
+        "team1Name": {
+          "type": "string",
+          "description": "First team name"
+        },
+        "team2Name": {
+          "type": "string",
+          "description": "Second team name"
+        },
+        "totalOvers": {
+          "type": "integer",
+          "description": "Total overs for the match"
+        },
+        "tossWinner": {
+          "type": "string",
+          "description": "Team that won the toss"
+        },
+        "tossDecision": {
+          "type": "string",
+          "enum": ["BAT", "BOWL"],
+          "description": "Decision chosen by toss winner"
+        },
+        "currentInnings": {
+          "type": "integer",
+          "description": "1 for first innings, 2 for second innings"
+        },
+        "battingTeam": {
+          "type": "string",
+          "description": "Currently batting team name"
+        },
+        "bowlingTeam": {
+          "type": "string",
+          "description": "Currently bowling team name"
+        },
+        "runs": {
+          "type": "integer",
+          "description": "Current runs scored in current innings"
+        },
+        "wickets": {
+          "type": "integer",
+          "description": "Current wickets lost in current innings"
+        },
+        "legalBallsBowled": {
+          "type": "integer",
+          "description": "Total legal balls bowled in current innings"
+        },
+        "ballsInCurrentOver": {
+          "type": "integer",
+          "description": "Legal balls bowled in current over (0 to 5)"
+        },
+        "completedOvers": {
+          "type": "integer",
+          "description": "Total completed overs in current innings"
+        },
+        "targetScore": {
+          "type": "integer",
+          "description": "Target score to win if 2nd innings"
+        },
+        "chaseNarration": {
+          "type": "string",
+          "description": "Live chasing narration text"
+        },
+        "strikerName": {
+          "type": "string",
+          "description": "Name of striker batsman"
+        },
+        "strikerRuns": {
+          "type": "integer",
+          "description": "Runs scored by striker"
+        },
+        "strikerBalls": {
+          "type": "integer",
+          "description": "Balls faced by striker"
+        },
+        "nonStrikerName": {
+          "type": "string",
+          "description": "Name of non-striker batsman"
+        },
+        "nonStrikerRuns": {
+          "type": "integer",
+          "description": "Runs scored by non-striker"
+        },
+        "nonStrikerBalls": {
+          "type": "integer",
+          "description": "Balls faced by non-striker"
+        },
+        "currentBowlerName": {
+          "type": "string",
+          "description": "Name of active bowler"
+        },
+        "bowlerRunsConceded": {
+          "type": "integer",
+          "description": "Runs conceded by active bowler"
+        },
+        "bowlerWickets": {
+          "type": "integer",
+          "description": "Wickets taken by active bowler"
+        },
+        "bowlerOversDisplay": {
+          "type": "string",
+          "description": "Overs bowled by current bowler formatted string"
+        },
+        "recentBalls": {
+          "type": "array",
+          "description": "List of recent ball descriptions for current over"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["LIVE", "COMPLETED"],
+          "description": "Match status"
+        },
+        "resultSummary": {
+          "type": "string",
+          "description": "Final result summary of the match"
+        },
+        "wideRunsOption": {
+          "type": "integer",
+          "description": "Runs awarded for wide ball (0 or 1)"
+        },
+        "noBallRunsOption": {
+          "type": "integer",
+          "description": "Runs awarded for no-ball (0 or 1)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last score update"
+        }
+      },
+      "required": [
+        "matchCode",
+        "scorerUid",
+        "team1Name",
+        "team2Name",
+        "totalOvers",
+        "tossWinner",
+        "tossDecision",
+        "currentInnings",
+        "battingTeam",
+        "bowlingTeam",
+        "runs",
+        "wickets",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/matches/{matchCode}": {
+      "schema": {
+        "$ref": "#/entities/LiveMatch"
+      },
+      "description": "Online live match documents keyed by unique 6-character match code."
+    }
+  }
+}

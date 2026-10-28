@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 3 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidLiveMatch(data) {
+      return data.matchCode is string && data.matchCode.size() >= 4 && data.matchCode.size() <= 12 &&
+             data.scorerUid is string && data.scorerUid.size() <= 128 &&
+             data.team1Name is string && data.team1Name.size() >= 1 && data.team1Name.size() <= 60 &&
+             data.team2Name is string && data.team2Name.size() >= 1 && data.team2Name.size() <= 60 &&
+             data.tossWinner is string && data.tossWinner.size() <= 60 &&
+             data.tossDecision is string && (data.tossDecision == 'BAT' || data.tossDecision == 'BOWL') &&
+             data.currentInnings is int && data.currentInnings >= 1 && data.currentInnings <= 2 &&
+             data.battingTeam is string && data.battingTeam.size() <= 60 &&
+             data.bowlingTeam is string && data.bowlingTeam.size() <= 60 &&
+             data.runs is int && data.runs >= 0 &&
+             data.wickets is int && data.wickets >= 0 && data.wickets <= 11 &&
+             data.totalOvers is int && data.totalOvers >= 1 && data.totalOvers <= 100 &&
+             data.status is string && (data.status == 'LIVE' || data.status == 'COMPLETED') &&
+             (!('legalBallsBowled' in data) || data.legalBallsBowled is int) &&
+             (!('ballsInCurrentOver' in data) || data.ballsInCurrentOver is int) &&
+             (!('completedOvers' in data) || data.completedOvers is int) &&
+             (!('targetScore' in data) || data.targetScore is int) &&
+             (!('chaseNarration' in data) || (data.chaseNarration is string && data.chaseNarration.size() <= 200)) &&
+             (!('strikerName' in data) || (data.strikerName is string && data.strikerName.size() <= 60)) &&
+             (!('strikerRuns' in data) || data.strikerRuns is int) &&
+             (!('strikerBalls' in data) || data.strikerBalls is int) &&
+             (!('nonStrikerName' in data) || (data.nonStrikerName is string && data.nonStrikerName.size() <= 60)) &&
+             (!('nonStrikerRuns' in data) || data.nonStrikerRuns is int) &&
+             (!('nonStrikerBalls' in data) || data.nonStrikerBalls is int) &&
+             (!('currentBowlerName' in data) || (data.currentBowlerName is string && data.currentBowlerName.size() <= 60)) &&
+             (!('bowlerRunsConceded' in data) || data.bowlerRunsConceded is int) &&
+             (!('bowlerWickets' in data) || data.bowlerWickets is int) &&
+             (!('bowlerOversDisplay' in data) || (data.bowlerOversDisplay is string && data.bowlerOversDisplay.size() <= 20)) &&
+             (!('recentBalls' in data) || (data.recentBalls is list && data.recentBalls.size() <= 60 && (data.recentBalls.size() == 0 || data.recentBalls[0] is string))) &&
+             (!('resultSummary' in data) || (data.resultSummary is string && data.resultSummary.size() <= 200)) &&
+             (!('wideRunsOption' in data) || data.wideRunsOption is int) &&
+             (!('noBallRunsOption' in data) || data.noBallRunsOption is int) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /matches/{matchCode} {
+      allow get: if isSignedIn() && isValidId(matchCode);
+      allow list: if isSignedIn() && resource.data.scorerUid == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(matchCode) &&
+                       incoming().scorerUid == request.auth.uid &&
+                       incoming().matchCode == matchCode &&
+                       incoming().keys().hasAll([
+                         'matchCode', 'scorerUid', 'team1Name', 'team2Name',
+                         'totalOvers', 'tossWinner', 'tossDecision',
+                         'currentInnings', 'battingTeam', 'bowlingTeam',
+                         'runs', 'wickets', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'matchCode', 'scorerUid', 'team1Name', 'team2Name',
+                         'totalOvers', 'tossWinner', 'tossDecision',
+                         'currentInnings', 'battingTeam', 'bowlingTeam',
+                         'runs', 'wickets', 'legalBallsBowled', 'ballsInCurrentOver',
+                         'completedOvers', 'targetScore', 'chaseNarration',
+                         'strikerName', 'strikerRuns', 'strikerBalls',
+                         'nonStrikerName', 'nonStrikerRuns', 'nonStrikerBalls',
+                         'currentBowlerName', 'bowlerRunsConceded', 'bowlerWickets',
+                         'bowlerOversDisplay', 'recentBalls', 'status', 'resultSummary',
+                         'wideRunsOption', 'noBallRunsOption', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidLiveMatch(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(matchCode) &&
+                       existing().scorerUid == request.auth.uid &&
+                       incoming().scorerUid == existing().scorerUid &&
+                       incoming().matchCode == existing().matchCode &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().keys().hasOnly([
+                         'matchCode', 'scorerUid', 'team1Name', 'team2Name',
+                         'totalOvers', 'tossWinner', 'tossDecision',
+                         'currentInnings', 'battingTeam', 'bowlingTeam',
+                         'runs', 'wickets', 'legalBallsBowled', 'ballsInCurrentOver',
+                         'completedOvers', 'targetScore', 'chaseNarration',
+                         'strikerName', 'strikerRuns', 'strikerBalls',
+                         'nonStrikerName', 'nonStrikerRuns', 'nonStrikerBalls',
+                         'currentBowlerName', 'bowlerRunsConceded', 'bowlerWickets',
+                         'bowlerOversDisplay', 'recentBalls', 'status', 'resultSummary',
+                         'wideRunsOption', 'noBallRunsOption', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidLiveMatch(incoming());
+
+      allow delete: if isSignedIn() &&
+                       isValidId(matchCode) &&
+                       existing().scorerUid == request.auth.uid;
+    }
+  }
+}
